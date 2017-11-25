@@ -20,18 +20,41 @@ public class Arvore {
 		if (arvore == null) {
 			arvore = new No(valor);
 		} else {
+
 			if (valor < arvore.getValor()) {
 				if (arvore.getEsquerda() != null) {
-					inserir(arvore.getEsquerda(), valor);
+					arvore.setEsquerda(inserir(arvore.getEsquerda(), valor));
 				} else {
 					arvore.setEsquerda(new No(valor));
 				}
+
+				calculeFatorBalanceamento(arvore);
+
+				if (estaDesbalanceado(arvore)) {
+					if (valor < arvore.getEsquerda().getValor()) {
+						arvore = rotacaoSimplesADireita(arvore);
+					} else {
+						arvore = rotacaoDuplaAEsquerda(arvore);
+					}
+				}
+
 			} else {
+
 				if (valor > arvore.getValor()) {
 					if (arvore.getDireita() != null) {
-						inserir(arvore.getDireita(), valor);
+						arvore.setDireita(inserir(arvore.getDireita(), valor));
 					} else {
 						arvore.setDireita(new No(valor));
+					}
+
+					calculeFatorBalanceamento(arvore);
+
+					if (estaDesbalanceado(arvore)) {
+						if (valor > arvore.getDireita().getValor()) {
+							arvore = rotacaoSimplesAEsquerda(arvore);
+						} else {
+							arvore = rotacaoDuplaADireita(arvore);
+						}
 					}
 				}
 			}
@@ -39,7 +62,7 @@ public class Arvore {
 
 		return arvore;
 	}
-
+	
 	private No remover(No arvore, long valor) {
 
 		if (arvore != null) {
@@ -48,9 +71,33 @@ public class Arvore {
 			} else {
 				if (valor < arvore.getValor()) {
 					arvore.setEsquerda(remover(arvore.getEsquerda(), valor));
+					
+					calculeFatorBalanceamento(arvore);
+
+					if (estaDesbalanceado(arvore)) {
+						/* se a altura da sub arvore a direita do no filho do desbalanceado for maior efetuar rotação simples a esquerda 
+						 * caso contrario efetuar rotação dupla a esquerda. */
+						if (alturaDaSubArvoreADireitaMaiorOuIgualADaEsquerda(arvore)) {
+							arvore = rotacaoSimplesAEsquerda(arvore);
+						} else {
+							arvore = rotacaoDuplaAEsquerda(arvore);
+						}
+					}
 				} else {
 					if (valor > arvore.getValor()) {
 						arvore.setDireita(remover(arvore.getDireita(), valor));
+						
+						calculeFatorBalanceamento(arvore);
+
+						if (estaDesbalanceado(arvore)) {
+							/*se a altura da sub arvore a esquerda do no a esquerda filho do desbalanceado for maior ou igual a da direita
+							 * efetuar a rotação simples a direita caso contrario efetuar rotação dupla a direita. */
+							if (alturaDaSubArvoreAEsquerdaMaiorOuIgualADaDireita(arvore)) {
+								arvore = rotacaoSimplesADireita(arvore);
+							} else {
+								arvore = rotacaoDuplaADireita(arvore);
+							}
+						}
 					}
 				}
 			}
@@ -60,7 +107,7 @@ public class Arvore {
 
 		return arvore;
 	}
-
+	
 	private No remove_atual(No atual) {
 		if (naoPossuiNenhumFilho(atual)) {
 			return null;
@@ -78,6 +125,50 @@ public class Arvore {
 			}
 		}
 		return atual;
+	}
+
+	private No rotacaoSimplesADireita(No desbalanceado) {
+		No no = desbalanceado.getEsquerda();
+
+		desbalanceado.setEsquerda(no.getDireita());
+
+		no.setDireita(desbalanceado);
+
+		calculeFatorBalanceamento(desbalanceado);
+
+		calculeFatorBalanceamento(no);
+
+		desbalanceado = no;
+
+		return desbalanceado;
+	}
+
+	private No rotacaoSimplesAEsquerda(No desbalanceado) {
+		No no = desbalanceado.getDireita();
+
+		desbalanceado.setDireita(no.getEsquerda());
+
+		no.setEsquerda(desbalanceado);
+
+		calculeFatorBalanceamento(desbalanceado);
+
+		calculeFatorBalanceamento(no);
+
+		desbalanceado = no;
+
+		return desbalanceado;
+	}
+
+	private No rotacaoDuplaAEsquerda(No raiz) {
+		raiz.setEsquerda(rotacaoSimplesAEsquerda(raiz.getEsquerda()));
+
+		return rotacaoSimplesADireita(raiz);
+	}
+
+	private No rotacaoDuplaADireita(No raiz) {
+		raiz.setDireita(rotacaoSimplesADireita(raiz.getDireita()));
+
+		return rotacaoSimplesAEsquerda(raiz);
 	}
 
 	public void imprimirPreOrdem() {
@@ -132,6 +223,12 @@ public class Arvore {
 		}
 	}
 
+	private void calculeFatorBalanceamento(No no) {
+		if(no != null) {
+			no.setFator(altura(no.getEsquerda()) - altura(no.getDireita()));
+		}
+	}
+
 	private long altura(No arvore) {
 
 		if (arvore != null) {
@@ -140,10 +237,7 @@ public class Arvore {
 			alturaEsquerda = altura(arvore.getEsquerda());
 			alturaDireita = altura(arvore.getDireita());
 
-			if (alturaEsquerda > alturaDireita)
-				return alturaEsquerda + 1;
-			else
-				return alturaDireita + 1;
+			return alturaEsquerda > alturaDireita ? alturaEsquerda + 1 : alturaDireita + 1;
 		}
 
 		return 0;
@@ -207,5 +301,17 @@ public class Arvore {
 
 	private boolean noEscolhidoParaTrocaPossuiFilhoAEsquerda(No escolhido) {
 		return escolhido.getEsquerda() != null;
+	}
+	
+	private boolean estaDesbalanceado(No arvore) {
+		return arvore.getFator() >= 2 || arvore.getFator() <= -2;
+	}
+	
+	private boolean alturaDaSubArvoreAEsquerdaMaiorOuIgualADaDireita(No arvore) {
+		return altura(arvore.getEsquerda().getDireita()) <= altura(arvore.getEsquerda().getEsquerda());
+	}
+
+	private boolean alturaDaSubArvoreADireitaMaiorOuIgualADaEsquerda(No arvore) {
+		return altura(arvore.getDireita().getEsquerda()) <= altura(arvore.getDireita().getDireita());
 	}
 }

@@ -3,6 +3,7 @@ package application;
 public class No {
 	private No direita;
 	private No esquerda;
+	private long fator;
 	private long valor;
 
 	public No(long valor) {
@@ -33,6 +34,14 @@ public class No {
 		this.valor = valor;
 	}
 
+	public long getFator() {
+		return fator;
+	}
+	
+	public void setFator(long fator) {
+		this.fator = fator;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
