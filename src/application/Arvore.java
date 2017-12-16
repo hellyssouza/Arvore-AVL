@@ -230,9 +230,9 @@ public class Arvore {
 	}
 
 	private long altura(No arvore) {
+		long alturaDireita, alturaEsquerda;
 
 		if (arvore != null) {
-			long alturaDireita, alturaEsquerda;
 
 			alturaEsquerda = altura(arvore.getEsquerda());
 			alturaDireita = altura(arvore.getDireita());
